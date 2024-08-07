@@ -2,6 +2,8 @@
 # DataManager,FlightSearch, FlightData, NotificationManager classes
 # to achieve the program requirements.
 
+import asyncio
+from telegram_alert import notify_lowest_price
 import time
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
@@ -69,3 +71,11 @@ for destination in list_of_destinations:
 
 # print(f"sheet_data:\n {data_manager.list_of_destinations}")
 # data_manager.update_iata_code()
+
+# TODO Reolve this and take this out once done
+async def main():
+    await notify_lowest_price()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
