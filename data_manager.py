@@ -12,7 +12,7 @@ class DataManager:
         self.api_token = os.getenv("SHEETY_BASIC_TOKEN")
         self.list_of_destinations = self.get_sheet()["prices"]
 
-    # TODO Grab t he data from Sheety
+    # TODO Grab the data from Sheety
     def get_sheet(self):
         response = requests.get(url=self.API_ENDPOINT)
         print("Response status code:", response.status_code)
@@ -32,4 +32,4 @@ class DataManager:
                 url=f"{self.API_ENDPOINT}/{destination['id']}",
                 json=update_code
             )
-            # print(response.text)
+

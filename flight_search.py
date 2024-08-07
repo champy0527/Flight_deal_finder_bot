@@ -87,15 +87,3 @@ class FlightSearch:
         response.raise_for_status()
         return response.json()
 
-
-    # def get_flight_price(self, origin_iata, destination_iata, depart_date, return_date):
-    #     search = self.search_flight_offers(origin_iata, destination_iata, depart_date, return_date)
-    #
-    #     if destination_iata_search == destination_iata:
-    #         # origin_iata = search["itineraries"][0]["segments"][0]["departure"]["iataCode"]
-    #         outward_date = search["itineraries"][0]["segments"][0]["departure"]["at"]
-    #         return_date = search["itineraries"][1]["segments"][0]["departure"]["at"]
-    #         lowest_price = float(search["price"]["grandTotal"])
-    #         return outward_date, return_date, lowest_price
-    #     else:
-    #         raise KeyError("IATA Code did not return any search results.")
