@@ -69,6 +69,8 @@ for destination in list_of_destinations:
                 print("sending telegram message")
 
                 """This is a method to call the send_text function on Telegram based on the parameters above"""
+
+
                 async def main():
                     message = (f"Low price alert! "
                                f"Only £{lowest_price_quoted} to fly from {ORIGIN_IATA} to {destination_city}, "
@@ -80,7 +82,7 @@ for destination in list_of_destinations:
 
             time.sleep(1.5)
 
-        else: # IF NON-STOP FLIGHTS CANNOT BE FOUND
+        else:  # IF NON-STOP FLIGHTS CANNOT BE FOUND
             print(f"\nNo nonstop flight offers found for {destination_city}. Searching multi-stop flights...")
 
             depart_date = (datetime.today() + timedelta(days=1)).strftime("%Y-%m-%d")
@@ -97,8 +99,8 @@ for destination in list_of_destinations:
 
             # print(outward_flight_data)
 
-            depart_outward_date, _, depart_lowest_price_quoted, depart_stopover = FlightData.get_oneway_flight_price_data(
-                outward_flight_data)
+            depart_outward_date, _, depart_lowest_price_quoted, depart_stopover \
+                = FlightData.get_oneway_flight_price_data(outward_flight_data)
 
             time.sleep(1.5)
 
@@ -115,8 +117,8 @@ for destination in list_of_destinations:
 
             # print(return_flight_data)
 
-            _, return_return_date, return_lowest_price_quoted, return_stopover = FlightData.get_oneway_flight_price_data(
-                return_flight_data)
+            _, return_return_date, return_lowest_price_quoted, return_stopover \
+                = FlightData.get_oneway_flight_price_data(return_flight_data)
 
             if depart_outward_date and return_return_date and depart_lowest_price_quoted and return_lowest_price_quoted:
                 multi_stop_depart_date = depart_outward_date.split("T")[0]
@@ -131,7 +133,9 @@ for destination in list_of_destinations:
 
                     async def main():
                         message = (f"Low price alert! "
-                                   f"Only £{multi_stop_lowest_price} to fly from {ORIGIN_IATA}-{depart_stopover}-{destination['iataCode']}, returning {destination['iataCode']}-{return_stopover}-{ORIGIN_IATA}. "
+                                   f"Only £{multi_stop_lowest_price} to fly from "
+                                   f"{ORIGIN_IATA}-{depart_stopover}-{destination['iataCode']}, "
+                                   f"returning {destination['iataCode']}-{return_stopover}-{ORIGIN_IATA}. "
                                    f"\non {multi_stop_depart_date} until {multi_stop_return_date}.")
                         await TelegramAlert.telegram_bot_send_text(message)
 
