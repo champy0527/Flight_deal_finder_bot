@@ -80,7 +80,32 @@ class FlightSearch:
             "adults": 1,
             "travelClass": travel_class,
             "nonStop": non_stop,
-            "currencyCode": "GBP"
+            "currencyCode": "GBP",
+            "max": "1"
+        }
+
+        response = requests.get(self.FLIGHT_SEARCH_ENDPOINT, headers=headers, params=parameters)
+        response.raise_for_status()
+        return response.json()
+
+    def search_one_way_flight(self, origin_iata, destination_iata, depart_date, travel_class="BUSINESS",
+                             non_stop="false"):
+
+        # 2023-05-02
+
+        headers = {
+            "Authorization": f"Bearer {self._token}"
+        }
+
+        parameters = {
+            "originLocationCode": origin_iata,  # Write LON when you call
+            "destinationLocationCode": destination_iata,
+            "departureDate": depart_date,
+            "adults": 1,
+            "travelClass": travel_class,
+            "nonStop": non_stop,
+            "currencyCode": "GBP",
+            "max": "1"
         }
 
         response = requests.get(self.FLIGHT_SEARCH_ENDPOINT, headers=headers, params=parameters)
