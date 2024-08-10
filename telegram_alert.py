@@ -15,3 +15,7 @@ class TelegramAlert:
         bot = Bot(token=BOT_TOKEN)
         await bot.send_message(chat_id=bot_chat_id, text=bot_message)
 
+
+    @staticmethod
+    async def send_low_price_alert(message):
+        await TelegramAlert.telegram_bot_send_text(message)

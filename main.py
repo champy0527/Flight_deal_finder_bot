@@ -3,7 +3,7 @@ import time
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
-# from data_manager import DataManager
+from data_manager import DataManager
 from flight_search import FlightSearch
 from flight_data import FlightData
 from telegram_alert import TelegramAlert
@@ -17,25 +17,25 @@ DEPART_DATE = (datetime.today() + timedelta(days=1)).strftime("%Y-%m-%d")
 RETURN_DATE = (datetime.today() + timedelta(days=(6 * 30))).strftime("%Y-%m-%d")
 
 # TODO Import the data in Sheety
-# data_manager = DataManager()
-# list_of_destinations = data_manager.list_of_destinations
+data_manager = DataManager()
+list_of_destinations = data_manager.list_of_destinations
 
 # TODO Establish connection for IATA Codes
 flight_search = FlightSearch()
 
-# TODO -- DEBUGGER. COMMENT OUT AFTER. --
-list_of_destinations = [
-    {"city": "Manila", "iataCode": "MNL", "lowestPrice": 900, "id": 2},
-    {"city": "Paris", "iataCode": "PAR", "lowestPrice": 300, "id": 3},
-    {"city": "Frankfurt", "iataCode": "FRA", "lowestPrice": 42, "id": 4},
-    {"city": "Tokyo", "iataCode": "TYO", "lowestPrice": 485, "id": 5},
-    {"city": "Hong Kong", "iataCode": "HKG", "lowestPrice": 551, "id": 6},
-    {"city": "Istanbul", "iataCode": "IST", "lowestPrice": 95, "id": 7},
-    {"city": "Kuala Lumpur", "iataCode": "KUL", "lowestPrice": 414, "id": 8},
-    {"city": "New York", "iataCode": "NYC", "lowestPrice": 240, "id": 9},
-    {"city": "San Francisco", "iataCode": "SFO", "lowestPrice": 260, "id": 10},
-    {"city": "Dublin", "iataCode": "DBN", "lowestPrice": 378, "id": 11}
-]
+# # TODO -- DEBUGGER. COMMENT OUT AFTER. --
+# list_of_destinations = [
+#     {"city": "Manila", "iataCode": "MNL", "lowestPrice": 900, "id": 2},
+#     {"city": "Paris", "iataCode": "PAR", "lowestPrice": 300, "id": 3},
+#     {"city": "Frankfurt", "iataCode": "FRA", "lowestPrice": 42, "id": 4},
+#     {"city": "Tokyo", "iataCode": "TYO", "lowestPrice": 485, "id": 5},
+#     {"city": "Hong Kong", "iataCode": "HKG", "lowestPrice": 551, "id": 6},
+#     {"city": "Istanbul", "iataCode": "IST", "lowestPrice": 95, "id": 7},
+#     {"city": "Kuala Lumpur", "iataCode": "KUL", "lowestPrice": 414, "id": 8},
+#     {"city": "New York", "iataCode": "NYC", "lowestPrice": 240, "id": 9},
+#     {"city": "San Francisco", "iataCode": "SFO", "lowestPrice": 260, "id": 10},
+#     {"city": "Dublin", "iataCode": "DBN", "lowestPrice": 378, "id": 11}
+# ]
 
 # TODO Iterate through the destinations on Sheety and request for the flight data based on the iterator
 for destination in list_of_destinations:
@@ -44,7 +44,7 @@ for destination in list_of_destinations:
     # This statement updates the iataCode in Google Sheets if the IATA is missing
     if not destination["iataCode"]:
         print("no iataCode found")
-        # destination["iataCode"] = flight_search.get_iata_code(destination_city)
+        destination["iataCode"] = flight_search.get_iata_code(destination_city)
     else:
 
         """Call for NON STOP FLIGHT"""
@@ -70,13 +70,14 @@ for destination in list_of_destinations:
             if lowest_price_quoted < destination["lowestPrice"]:
                 print("sending telegram message")
 
+                non_stop_message = (
+                    f"Low price alert! \n"
+                    f"Only £{lowest_price_quoted} to fly from {ORIGIN_IATA}-{destination['iataCode']}-{ORIGIN_IATA}, "
+                    f"on {departure} until {arrival}."
+                )
                 # This is a method to call the send_text function on Telegram based on the parameters above
-                async def main():
-                    message = (f"Low price alert! "
-                               f"Only £{lowest_price_quoted} to fly from {ORIGIN_IATA} to {destination_city}, "
-                               f"on {departure} until {arrival}.")
-                    await TelegramAlert.telegram_bot_send_text(message)
-                asyncio.run(main())
+                asyncio.run(TelegramAlert.send_low_price_alert(non_stop_message))
+                data_manager.send_email_to_users(non_stop_message)
 
             time.sleep(1.5)
 
@@ -127,20 +128,16 @@ for destination in list_of_destinations:
                 if multi_stop_lowest_price < destination["lowestPrice"]:
                     print("sending telegram message")
 
+                    multi_stop_message = (f"Low price alert! "
+                                          f"\nOnly £{multi_stop_lowest_price} to fly from "
+                                          f"{ORIGIN_IATA}-{depart_stopover}-{destination['iataCode']}, "
+                                          f"returning {destination['iataCode']}-{return_stopover}-{ORIGIN_IATA}, "
+                                          f"on {multi_stop_depart_date} until {multi_stop_return_date}.")
 
-                    async def main():
-                        message = (f"Low price alert! "
-                                   f"Only £{multi_stop_lowest_price} to fly from "
-                                   f"{ORIGIN_IATA}-{depart_stopover}-{destination['iataCode']}, "
-                                   f"returning {destination['iataCode']}-{return_stopover}-{ORIGIN_IATA}. "
-                                   f"\non {multi_stop_depart_date} until {multi_stop_return_date}.")
-                        await TelegramAlert.telegram_bot_send_text(message)
-
-
-                    asyncio.run(main())
-
+                    asyncio.run(TelegramAlert.send_low_price_alert(multi_stop_message))
+                    data_manager.send_email_to_users(multi_stop_message)
             else:
                 print("ALERT: No multi-stop flights found.")
 
-# TODO Comment out to reduce pinging to Sheety API
+# TODO Comment out to reduce pinging to Sheety APIf
 # data_manager.update_iata_code()
