@@ -9,4 +9,5 @@ Here are the parameters:
 5. If the lowest price found is lower than the listed price threshold in Google Sheets, a telegram_bot_send_text will be called using __main__ to structure the message.
 
 For revisiting in the future:
-- Work on non-stop flight options by looking at the structure of flight_data.py
+- Work on non-stop flight options by looking at the structure of flight_data.py (RESOLVED 10.08.24)
+- Reorganise the messaging functions and modules so that the email and telegram modules are all in one file.
