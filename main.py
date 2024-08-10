@@ -10,8 +10,11 @@ from telegram_alert import TelegramAlert
 
 load_dotenv()
 
+# TODO Fill in the main parameters before runing the code
 ORIGIN_IATA = "LON"
 TRAVEL_CLASS = "ECONOMY"
+DEPART_DATE = (datetime.today() + timedelta(days=1)).strftime("%Y-%m-%d")
+RETURN_DATE = (datetime.today() + timedelta(days=(6 * 30))).strftime("%Y-%m-%d")
 
 # TODO Import the data in Sheety
 # data_manager = DataManager()
@@ -37,30 +40,29 @@ list_of_destinations = [
 # TODO Iterate through the destinations on Sheety and request for the flight data based on the iterator
 for destination in list_of_destinations:
     destination_city = destination["city"]
+
+    # This statement updates the iataCode in Google Sheets if the IATA is missing
     if not destination["iataCode"]:
         print("no iataCode found")
         # destination["iataCode"] = flight_search.get_iata_code(destination_city)
     else:
-        """Establish date"""
-        depart_date = (datetime.today() + timedelta(days=1)).strftime("%Y-%m-%d")
-        return_date = (datetime.today() + timedelta(days=(6 * 30))).strftime("%Y-%m-%d")
 
         """Call for NON STOP FLIGHT"""
         flight_data = flight_search.search_flight_offers(
             origin_iata=ORIGIN_IATA,
             destination_iata=destination["iataCode"],
-            depart_date=depart_date,
-            return_date=return_date,
+            depart_date=DEPART_DATE,
+            return_date=RETURN_DATE,
             travel_class=TRAVEL_CLASS,
             non_stop="true"
         )
-        outward_date, return_date, lowest_price_quoted = FlightData.get_flight_price_data(flight_data)
+        outward_date, two_way_return_date, lowest_price_quoted = FlightData.get_two_way_flight_price_data(flight_data)
 
-        """Search results for NON STOP FLIGHT"""
+        # TODO Search results for NON STOP FLIGHT first.
         if lowest_price_quoted:
 
-            departure = depart_date.split("T")[0]
-            arrival = return_date.split("T")[0]
+            departure = DEPART_DATE.split("T")[0]
+            arrival = two_way_return_date.split("T")[0]
 
             print(f"\nSearching flights for {destination_city}...")
             print(f"{destination_city}: £{lowest_price_quoted}")
@@ -68,31 +70,25 @@ for destination in list_of_destinations:
             if lowest_price_quoted < destination["lowestPrice"]:
                 print("sending telegram message")
 
-                """This is a method to call the send_text function on Telegram based on the parameters above"""
-
-
+                # This is a method to call the send_text function on Telegram based on the parameters above
                 async def main():
                     message = (f"Low price alert! "
                                f"Only £{lowest_price_quoted} to fly from {ORIGIN_IATA} to {destination_city}, "
                                f"on {departure} until {arrival}.")
                     await TelegramAlert.telegram_bot_send_text(message)
-
-
                 asyncio.run(main())
 
             time.sleep(1.5)
 
-        else:  # IF NON-STOP FLIGHTS CANNOT BE FOUND
+        # TODO if non-stop flight can't be found, search for ONE WAY flights going to and from destination w/ stopover
+        else:
             print(f"\nNo nonstop flight offers found for {destination_city}. Searching multi-stop flights...")
-
-            depart_date = (datetime.today() + timedelta(days=1)).strftime("%Y-%m-%d")
-            return_date = (datetime.today() + timedelta(days=(6 * 30))).strftime("%Y-%m-%d")
 
             """OUTWARD FLIGHT"""
             outward_flight_data = flight_search.search_one_way_flight(
                 origin_iata=ORIGIN_IATA,
                 destination_iata=destination["iataCode"],
-                depart_date=depart_date,
+                depart_date=DEPART_DATE,
                 travel_class=TRAVEL_CLASS,
                 non_stop="false"
             )
@@ -108,7 +104,7 @@ for destination in list_of_destinations:
             return_flight_data = flight_search.search_one_way_flight(
                 origin_iata=destination["iataCode"],
                 destination_iata=ORIGIN_IATA,
-                depart_date=return_date,
+                depart_date=RETURN_DATE,
                 travel_class=TRAVEL_CLASS,
                 non_stop="false"
             )
@@ -120,6 +116,7 @@ for destination in list_of_destinations:
             _, return_return_date, return_lowest_price_quoted, return_stopover \
                 = FlightData.get_oneway_flight_price_data(return_flight_data)
 
+            # If search is successful, check if the multi-stop prices are cheaper than in the table
             if depart_outward_date and return_return_date and depart_lowest_price_quoted and return_lowest_price_quoted:
                 multi_stop_depart_date = depart_outward_date.split("T")[0]
                 multi_stop_return_date = return_return_date.split("T")[0]

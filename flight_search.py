@@ -89,7 +89,7 @@ class FlightSearch:
         return response.json()
 
     def search_one_way_flight(self, origin_iata, destination_iata, depart_date, travel_class="BUSINESS",
-                             non_stop="false"):
+                              non_stop="false"):
 
         # 2023-05-02
 
@@ -111,4 +111,3 @@ class FlightSearch:
         response = requests.get(self.FLIGHT_SEARCH_ENDPOINT, headers=headers, params=parameters)
         response.raise_for_status()
         return response.json()
-

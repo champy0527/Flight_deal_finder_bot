@@ -6,7 +6,8 @@ load_dotenv()
 
 
 class DataManager:
-    API_ENDPOINT = os.getenv("SHEET_API_ENDPOINT")
+    FLIGHT_SHEET_API_ENDPOINT = os.getenv("FLIGHT_SHEET_API_ENDPOINT")
+    USERS_SHEET_API_ENDPOINT = os.getenv("FLIGHT_SHEET_API_ENDPOINT")
 
     def __init__(self):
         self.api_token = os.getenv("SHEETY_BASIC_TOKEN")
@@ -14,7 +15,7 @@ class DataManager:
 
     # TODO Grab the data from Sheety
     def get_sheet(self):
-        response = requests.get(url=self.API_ENDPOINT)
+        response = requests.get(url=self.FLIGHT_SHEET_API_ENDPOINT)
         print("Response status code:", response.status_code)
         # print("Response text:", response.text)
         return response.json()
@@ -33,3 +34,8 @@ class DataManager:
                 json=update_code
             )
 
+    def get_customer_emails(self):
+        response = requests.get(url=self.USERS_SHEET_API_ENDPOINT)
+        print("Response status code:", response.status_code)
+        # print("Response text:", response.text)
+        return response.json()
